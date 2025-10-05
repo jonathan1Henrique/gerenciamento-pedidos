@@ -22,9 +22,4 @@ public class ErroResponse {
         this.mensagem = mensagem;
     }
 
-    public ErroResponse(int status, Map<String, String> erros) {
-        this.status = status;
-        this.erros = erros;
-    }
-
 }
