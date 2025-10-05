@@ -1,25 +1,60 @@
-# Build and Release Folders
-bin-debug/
-bin-release/
-[Oo]bj/
-[Bb]in/
 
-# Other files and folders
-.settings/
+# Compiled class files
+*.class
 
-# Executables
-*.swf
-*.air
-*.ipa
-*.apk
+# Log files
+*.log
 
-.build/
+# BlueJ files
+*.ctxt
 
-build
+# Mobile Tools for Java (J2ME)
+.mtj.tmp/
 
+# Package Files #
+*.jar
+*.war
+*.ear
+
+# IntelliJ IDEA
 .idea/
+*.iml
+*.iws
+out/
+*.ipr
 
-.idea
+# Maven
+target/
+
+# Gradle
+.gradle/
+build/
+
+# Eclipse
+.project
+.classpath
+.settings/
+bin/
+
+# NetBeans
+nbproject/private/
+build/
+nbbuild/
+dist/
+nbdist/
+.nb-gradle/
+
+# VS Code
+.vscode/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# Others
+*.swp
+*.swo
+
 
 # Project files, i.e. `.project`, `.actionScriptProperties` and `.flexProperties`
 # should NOT be excluded as they contain compiler settings and other important
