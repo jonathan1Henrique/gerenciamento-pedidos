@@ -4,7 +4,6 @@ import com.gerenciador.paginacao.PageRecord;
 import com.gerenciador.pedido.record.ItemRecord;
 import com.gerenciador.pedido.record.PagamentoRecord;
 import com.gerenciador.pedido.record.PedidoRecord;
-import jakarta.validation.Valid;
 import org.springframework.data.domain.Pageable;
 
 import java.time.LocalDateTime;

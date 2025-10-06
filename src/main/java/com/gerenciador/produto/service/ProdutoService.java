@@ -1,7 +1,6 @@
 package com.gerenciador.produto.service;
 
 import com.gerenciador.paginacao.PageRecord;
-import com.gerenciador.produto.entity.Produto;
 import com.gerenciador.produto.record.ProdutoRecord;
 import org.springframework.data.domain.Pageable;
 
