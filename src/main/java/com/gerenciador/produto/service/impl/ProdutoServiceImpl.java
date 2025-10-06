@@ -15,6 +15,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 
 @Service
@@ -55,6 +56,11 @@ public class ProdutoServiceImpl implements ProdutoService {
     @Override
     public ProdutoRecord buscarPorId(Long id) {
         return mapper.toRecord(repository.findById(id).orElse(null));
+    }
+
+    @Override
+    public List<ProdutoRecord> buscarPorListaId(List<Long> idProdutos) {
+        return mapper.toRecordList(repository.findAllById(idProdutos));
     }
 
     @Override

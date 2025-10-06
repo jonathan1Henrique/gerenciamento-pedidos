@@ -2,6 +2,7 @@ package com.gerenciador.handler;
 
 
 import com.gerenciador.exception.NotFoundException;
+import com.gerenciador.exception.OutOfStockOrderException;
 import com.gerenciador.exception.UnprocessableEntityException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -36,6 +37,18 @@ public class GlobalExceptionHandler {
             erroResponse.getErros().put(erro.getField(), erro.getDefaultMessage());
         }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(erroResponse);
+    }
+
+    @ExceptionHandler(OutOfStockOrderException.class)
+    public ResponseEntity<ErroResponse> handleOutOfStockOrderException(OutOfStockOrderException ex) {
+        ErroResponse erro = new ErroResponse(HttpStatus.CONFLICT.value(), ex.getErros());
+        return new ResponseEntity<>(erro, HttpStatus.NOT_FOUND);
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<ErroResponse> handleIllegalArgumentExceptionException(IllegalArgumentException ex) {
+        ErroResponse erro = new ErroResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return new ResponseEntity<>(erro, HttpStatus.BAD_REQUEST);
     }
 
 }
