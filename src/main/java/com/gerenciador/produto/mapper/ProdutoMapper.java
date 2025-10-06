@@ -7,6 +7,8 @@ import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
 import org.springframework.data.domain.Page;
 
+import java.util.List;
+
 @Mapper(componentModel = "spring")
 public interface ProdutoMapper {
     ProdutoRecord toRecord(Produto produto);
@@ -14,7 +16,11 @@ public interface ProdutoMapper {
     @Mapping(target = "id",  ignore = true)
     Produto toSaveEntity(ProdutoRecord record);
 
+    Produto toEntity(ProdutoRecord record);
+
     PageRecord toPageRecord(Page<Produto> produtoPage);
+
+    List<ProdutoRecord> toRecordList(List<Produto> produtos);
 
 }
 

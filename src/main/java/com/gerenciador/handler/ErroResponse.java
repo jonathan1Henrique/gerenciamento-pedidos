@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
 import java.util.Map;
 
 @Getter
@@ -16,10 +17,17 @@ public class ErroResponse {
     private int status;
     private String mensagem;
     private Map<String, String> erros;
+    private List<String> erroList;
 
     public ErroResponse(int status, String mensagem) {
         this.status = status;
         this.mensagem = mensagem;
     }
+
+    public ErroResponse(int status, List<String> erros) {
+        this.status = status;
+        this.erroList = erros;
+    }
+
 
 }
