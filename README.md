@@ -43,13 +43,7 @@ Você pode conectar usando qualquer cliente SQL, como:
     
     ou até via terminal (mysql -u myuser -pmypassword -h localhost)
 
-## 🗃️ 4. Criar o banco de dados
-
-Após conectar ao MySQL, crie o banco de dados utilizado pela aplicação:
-
-    CREATE DATABASE gerenciador;
-
-## 📦 5. Executar os scripts de schema e dados
+## 📦 4. Executar os scripts de schema e dados
 
 Dentro da pasta banco (localizada na raiz do projeto), execute na seguinte ordem:
 
@@ -61,7 +55,7 @@ Exemplo (via terminal MySQL):
     mysql -u myuser -pmypassword -h localhost gerenciador < banco/01-schema.sql
     mysql -u myuser -pmypassword -h localhost gerenciador < banco/02-dados.sql
 
-## ⚙️ 6. Subir o sistema
+## ⚙️ 5. Subir o sistema
 
 Após o banco estar criado e populado, volte para a raiz do projeto e execute:
 
@@ -72,7 +66,7 @@ GerenciadorDePedidosApplication.java
 
 Clique em Run ▶️
 
-## ✅ 7. Acessar a aplicação
+## ✅ 6. Acessar a aplicação
 
 Assim que o sistema estiver rodando, ele estará acessível em:
 
