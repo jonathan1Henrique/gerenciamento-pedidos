@@ -6,7 +6,6 @@ import com.gerenciador.pedido.record.PagamentoRecord;
 import com.gerenciador.pedido.record.PedidoRecord;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PedidoService {
