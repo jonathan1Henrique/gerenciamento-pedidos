@@ -78,7 +78,7 @@ Assim que o sistema estiver rodando, ele estará acessível em:
 
 👉 http://localhost:8080/gerenciador-pedidos
 
-Se o Swagger estiver habilitado, acesse:
+Swagger acesse:
 👉 http://localhost:8080/gerenciador-pedidos/swagger-ui/index.html
 
 ## 💡 Dica
