@@ -1,4 +1,4 @@
-package com.gerenciador.auth;
+package com.gerenciador.auth.mapper;
 
 import com.gerenciador.auth.entity.Usuario;
 import com.gerenciador.auth.record.RegisterRequestRecord;

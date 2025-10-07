@@ -1,5 +1,8 @@
 package com.gerenciador.pedido.service.impl;
 
+import com.gerenciador.dashboard.record.FaturamentoMensalRecord;
+import com.gerenciador.dashboard.record.TicketMedioRecord;
+import com.gerenciador.dashboard.record.TopCincoRecord;
 import com.gerenciador.exception.NotFoundException;
 import com.gerenciador.exception.OrderNotBelongException;
 import com.gerenciador.exception.OutOfStockOrderException;
@@ -111,6 +114,21 @@ public class PedidoServiceImpl implements PedidoService {
         return mapper.toRecord(repository.save(pedido));
     }
 
+    @Override
+    public List<TopCincoRecord> topCinco() {
+        return repository.buscarTopCincoUsuarios();
+    }
+
+    @Override
+    public List<TicketMedioRecord> buscarTicketMedioPorUsuario() {
+        return repository.buscarTicketMedioPorUsuario();
+    }
+
+    @Override
+    public FaturamentoMensalRecord buscarFaturamentoMensal() {
+        return repository.buscarFaturamentoMensal();
+    }
+
     private void validaEstoque(Long id, Pedido pedido) {
         List<PedidoItens> itens = itemRepository.findByIdPedido(id);
         for (PedidoItens item : itens) {
@@ -130,21 +148,6 @@ public class PedidoServiceImpl implements PedidoService {
                 .orElseThrow(() -> new NotFoundException("Pedido com Id " + idPedido + " não encontrado"));
     }
 
-    private void validarDatas(LocalDateTime dataInicio, LocalDateTime dataFim, String tipo) {
-        if (dataInicio != null && dataFim == null) {
-            throw new IllegalArgumentException("A data de fim de " + tipo + " deve ser informada quando a data de início é fornecida.");
-        }
-
-        if (dataFim != null && dataInicio == null) {
-            throw new IllegalArgumentException("A data de início de " + tipo + " deve ser informada quando a data de fim é fornecida.");
-        }
-
-        if (dataInicio != null && dataFim != null && dataInicio.isAfter(dataFim)) {
-            throw new IllegalArgumentException("A data de início de " + tipo + " não pode ser posterior à data de fim.");
-        }
-    }
-
-
     private Pedido processarPedido(Long idPedido, List<ItemRecord> itemRecords) {
         List<Long> idProdutos = new ArrayList<>();
         Map<Long, Integer> quantidadeProdutos = new HashMap<>();
@@ -162,10 +165,11 @@ public class PedidoServiceImpl implements PedidoService {
         BigDecimal valorTotal = somaValorTotal(produtos, quantidadeProdutos);
 
         Pedido pedido = salvaPedido(valorTotal, idPedido);
-        salvaNovosItemsPedido(produtos, pedido.getId(), quantidadeProdutos);
+        salvaNovosItemsPedido(produtos, idPedido, quantidadeProdutos);
         return pedido;
 
     }
+
     private void salvaNovosItemsPedido(List<ProdutoRecord> produtos, Long idPedido, Map<Long, Integer> quantidadeProdutos) {
         List<PedidoItens> itens = new ArrayList<>();
         produtos.forEach(produto ->

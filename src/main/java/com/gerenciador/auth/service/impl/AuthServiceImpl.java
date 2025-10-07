@@ -1,6 +1,6 @@
 package com.gerenciador.auth.service.impl;
 
-import com.gerenciador.auth.UsuarioMapper;
+import com.gerenciador.auth.mapper.UsuarioMapper;
 import com.gerenciador.auth.entity.Usuario;
 import com.gerenciador.auth.jwt.JwtService;
 import com.gerenciador.auth.record.LoginResponseRecord;

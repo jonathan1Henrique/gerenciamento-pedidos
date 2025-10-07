@@ -1,5 +1,8 @@
 package com.gerenciador.pedido.service;
 
+import com.gerenciador.dashboard.record.FaturamentoMensalRecord;
+import com.gerenciador.dashboard.record.TicketMedioRecord;
+import com.gerenciador.dashboard.record.TopCincoRecord;
 import com.gerenciador.paginacao.PageRecord;
 import com.gerenciador.pedido.record.ItemRecord;
 import com.gerenciador.pedido.record.PagamentoRecord;
@@ -16,4 +19,10 @@ public interface PedidoService {
     PageRecord listar(String usuario, String status, Pageable pageable);
 
     PedidoRecord pagamento(Long id, PagamentoRecord record);
+
+    List<TopCincoRecord> topCinco();
+
+    List<TicketMedioRecord> buscarTicketMedioPorUsuario();
+
+    FaturamentoMensalRecord buscarFaturamentoMensal();
 }
