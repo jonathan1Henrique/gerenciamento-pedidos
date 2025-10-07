@@ -10,10 +10,6 @@ public interface PedidoRepositoryCustom {
     Page<PedidoResumoRecord> buscarPedidosComProdutos(
             String usuario,
             String status,
-            LocalDateTime dataInicioPedido,
-            LocalDateTime dataFimPedido,
-            LocalDateTime dataInicioPagamento,
-            LocalDateTime dataFimPagamento,
             Pageable pageable
     );
 }

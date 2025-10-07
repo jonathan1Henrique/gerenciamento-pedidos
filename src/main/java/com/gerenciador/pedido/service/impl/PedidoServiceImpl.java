@@ -1,6 +1,7 @@
 package com.gerenciador.pedido.service.impl;
 
 import com.gerenciador.exception.NotFoundException;
+import com.gerenciador.exception.OrderNotBelongException;
 import com.gerenciador.exception.OutOfStockOrderException;
 import com.gerenciador.paginacao.PageRecord;
 import com.gerenciador.pedido.entity.Pedido;
@@ -17,6 +18,7 @@ import com.gerenciador.produto.entity.Produto;
 import com.gerenciador.produto.mapper.ProdutoMapper;
 import com.gerenciador.produto.record.ProdutoRecord;
 import com.gerenciador.produto.service.ProdutoService;
+import com.gerenciador.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,6 +40,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final PedidoItemRepository itemRepository;
     private final PedidoMapper mapper;
     private final ProdutoMapper produtoMapper;
+    private final AuthService authService;
 
     @Override
     public PedidoRecord salvar(List<ItemRecord> itemRecords) {
@@ -47,7 +50,12 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public PedidoRecord editar(Long idPedido, List<ItemRecord> itemRecords) {
-        buscaPedidoPorId(idPedido);
+        Pedido pedido = buscaPedidoPorId(idPedido);
+        String username = authService.getUsuarioLogado().username();
+        if (!pedido.getUsuario().equals(username)) {
+            throw new OrderNotBelongException("O Pedido não pertence ao usuário logado");
+        }
+
         List<Long> idProdutos = new ArrayList<>();
         Map<Long, Integer> quantidadeProdutos = new HashMap<>();
         itemRecords.forEach(item -> {
@@ -57,9 +65,9 @@ public class PedidoServiceImpl implements PedidoService {
 
         List<ProdutoRecord> produtos = produtoService.buscarPorListaId(idProdutos);
 
-        List<PedidoItens> pedidoItens = itemRepository.findByIdPedido(idPedido);
+        List<PedidoItens> pedidoItens = itemRepository.findByIdPedido(pedido.getId());
 
-        Pedido pedido = processarPedido(idPedido, itemRecords);
+        processarPedido(pedido.getId(), itemRecords);
 
         editaItemsPedido(produtos, pedido.getId(), quantidadeProdutos, pedidoItens);
 
@@ -68,20 +76,23 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public PageRecord listar(String usuario, String status,
-                             LocalDateTime dataInicioPedido, LocalDateTime dataFimPedido,
-                             LocalDateTime dataInicioPagamento, LocalDateTime dataFimPagamento,
                              Pageable pageable) {
 
-        validarDatas(dataInicioPedido, dataFimPedido, "pedido");
-        validarDatas(dataInicioPagamento, dataFimPagamento, "pagamento");
+        usuario = getUsuario(usuario);
 
         return mapper.toPageRecord(
                 repository.buscarPedidosComProdutos(
                         usuario, status,
-                        dataInicioPedido, dataFimPedido,
-                        dataInicioPagamento, dataFimPagamento,
                         pageable)
         );
+    }
+
+    private String getUsuario(String usuario) {
+        String role = authService.getUsuarioLogado().role();
+        if(!role.equals("ROLE_ADMIN")){
+            usuario = authService.getUsuarioLogado().username();
+        }
+        return usuario;
     }
 
     @Override
@@ -204,7 +215,7 @@ public class PedidoServiceImpl implements PedidoService {
         return repository.save(Pedido.builder()
                 .id(idPedido)
                 .valorTotal(valorTotal)
-                .usuario("usuario")
+                .usuario(authService.getUsuarioLogado().username())
                 .status(StatusPedido.PENDENTE)
                 .dataPedido(LocalDateTime.now())
                 .build());

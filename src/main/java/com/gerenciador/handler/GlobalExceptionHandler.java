@@ -2,6 +2,7 @@ package com.gerenciador.handler;
 
 
 import com.gerenciador.exception.NotFoundException;
+import com.gerenciador.exception.OrderNotBelongException;
 import com.gerenciador.exception.OutOfStockOrderException;
 import com.gerenciador.exception.UnprocessableEntityException;
 import org.springframework.http.HttpStatus;
@@ -49,6 +50,14 @@ public class GlobalExceptionHandler {
     public ResponseEntity<ErroResponse> handleIllegalArgumentExceptionException(IllegalArgumentException ex) {
         ErroResponse erro = new ErroResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
         return new ResponseEntity<>(erro, HttpStatus.BAD_REQUEST);
+    }
+
+
+
+    @ExceptionHandler(OrderNotBelongException.class)
+    public ResponseEntity<ErroResponse> handleIllegalArgumentExceptionException(OrderNotBelongException ex) {
+        ErroResponse erro = new ErroResponse(HttpStatus.FORBIDDEN.value(), ex.getMessage());
+        return new ResponseEntity<>(erro, HttpStatus.FORBIDDEN);
     }
 
 }

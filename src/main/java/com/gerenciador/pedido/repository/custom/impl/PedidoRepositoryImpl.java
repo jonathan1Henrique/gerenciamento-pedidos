@@ -13,8 +13,10 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.time.LocalDateTime;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
 
 @Repository
 public class PedidoRepositoryImpl implements PedidoRepositoryCustom {
@@ -26,15 +28,12 @@ public class PedidoRepositoryImpl implements PedidoRepositoryCustom {
 
     @Override
     public Page<PedidoResumoRecord> buscarPedidosComProdutos(
-            String usuarioId,
+            String usuario,
             String status,
-            LocalDateTime dataInicioPedido,
-            LocalDateTime dataFimPedido,
-            LocalDateTime dataInicioPagamento,
-            LocalDateTime dataFimPagamento,
             Pageable pageable
     ) {
-        String baseQuery = """
+        StringBuilder sql = new StringBuilder();
+        sql.append("""
         SELECT 
             p.valor_total AS valor_total,
             p.id AS pedido_id,
@@ -50,57 +49,53 @@ public class PedidoRepositoryImpl implements PedidoRepositoryCustom {
         FROM pedido p
         JOIN pedido_itens pi ON p.id = pi.id_pedido
         JOIN produto pr ON pi.id_produto = pr.id
-        WHERE (:usuarioId IS NULL OR p.usuario = :usuarioId)
-          AND (:status IS NULL OR p.status = :status)
-          AND (:dataInicioPedido IS NULL OR p.data_pedido >= :dataInicioPedido)
-          AND (:dataFimPedido IS NULL OR p.data_pedido <= :dataFimPedido)
-          AND (:dataInicioPagamento IS NULL OR p.data_pagamento >= :dataInicioPagamento)
-          AND (:dataFimPagamento IS NULL OR p.data_pagamento <= :dataFimPagamento)
-        ORDER BY p.data_pedido DESC
-    """;
+        WHERE 1=1
+    """);
 
-        String countQueryStr = """
-        SELECT COUNT(DISTINCT p.id)
-        FROM pedido p
-        WHERE (:usuarioId IS NULL OR p.usuario = :usuarioId)
-          AND (:status IS NULL OR p.status = :status)
-          AND (:dataInicioPedido IS NULL OR p.data_pedido >= :dataInicioPedido)
-          AND (:dataFimPedido IS NULL OR p.data_pedido <= :dataFimPedido)
-          AND (:dataInicioPagamento IS NULL OR p.data_pagamento >= :dataInicioPagamento)
-          AND (:dataFimPagamento IS NULL OR p.data_pagamento <= :dataFimPagamento)
-    """;
+        if (usuario != null && !usuario.isEmpty()) {
+            sql.append(" AND p.usuario = :usuario");
+        }
+        if (status != null && !status.isEmpty()) {
+            sql.append(" AND p.status = :status");
+        }
 
-        Query query = entityManager.createNativeQuery(baseQuery);
-        Query countQuery = entityManager.createNativeQuery(countQueryStr);
+        sql.append(" ORDER BY p.data_pedido DESC");
 
-        // ✅ Use HashMap — permite valores nulos e é seguro
-        Map<String, Object> params = new HashMap<>();
-        params.put("usuarioId", usuarioId);
-        params.put("status", status);
-        params.put("dataInicioPedido", dataInicioPedido);
-        params.put("dataFimPedido", dataFimPedido);
-        params.put("dataInicioPagamento", dataInicioPagamento);
-        params.put("dataFimPagamento", dataFimPagamento);
+        StringBuilder countSql = new StringBuilder();
+        countSql.append("SELECT COUNT(DISTINCT p.id) FROM pedido p WHERE 1=1");
 
-        // ✅ Sempre define todos os parâmetros (mesmo que nulos)
-        params.forEach((key, value) -> {
-            query.setParameter(key, value);
-            countQuery.setParameter(key, value);
-        });
+        if (usuario != null && !usuario.isEmpty()) {
+            countSql.append(" AND p.usuario = :usuario");
+        }
+        if (status != null && !status.isEmpty()) {
+            countSql.append(" AND p.status = :status");
+        }
 
-        // ✅ Paginação
+        Query query = entityManager.createNativeQuery(sql.toString());
+        Query countQuery = entityManager.createNativeQuery(countSql.toString());
+
+        if (usuario != null && !usuario.isEmpty()) {
+            query.setParameter("usuario", usuario);
+            countQuery.setParameter("usuario", usuario);
+        }
+        if (status != null && !status.isEmpty()) {
+            query.setParameter("status", status);
+            countQuery.setParameter("status", status);
+        }
+
         query.setFirstResult((int) pageable.getOffset());
         query.setMaxResults(pageable.getPageSize());
 
         List<Object[]> results = query.getResultList();
         Long total = ((Number) countQuery.getSingleResult()).longValue();
 
+        // ✅ Montagem do resultado agrupado por pedido
         Map<Long, PedidoResumoRecord> pedidosMap = new LinkedHashMap<>();
 
         for (Object[] row : results) {
             BigDecimal valorTotal = (BigDecimal) row[0];
             Long pedidoId = ((Number) row[1]).longValue();
-            String usuario = (String) row[2];
+            String user = (String) row[2];
             StatusPedido statusPedido = StatusPedido.valueOf((String) row[3]);
 
             ProdutoRecord produto = new ProdutoRecord(
@@ -118,7 +113,7 @@ public class PedidoRepositoryImpl implements PedidoRepositoryCustom {
                     .computeIfAbsent(pedidoId, id -> new PedidoResumoRecord(
                             valorTotal,
                             pedidoId,
-                            usuario,
+                            user,
                             statusPedido,
                             new ArrayList<>(),
                             quantidadeProduto
@@ -129,6 +124,7 @@ public class PedidoRepositoryImpl implements PedidoRepositoryCustom {
 
         return new PageImpl<>(new ArrayList<>(pedidosMap.values()), pageable, total);
     }
+
 
 
 }

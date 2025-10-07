@@ -19,3 +19,9 @@ server:
   port: 8080
   servlet:
     context-path: /gerenciador-pedidos
+
+springdoc:
+  api-docs:
+    path: /v3/api-docs
+  swagger-ui:
+    path: /swagger-ui.html

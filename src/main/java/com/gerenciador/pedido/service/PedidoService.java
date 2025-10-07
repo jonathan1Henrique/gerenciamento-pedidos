@@ -14,7 +14,7 @@ public interface PedidoService {
 
     PedidoRecord editar(Long idPedido, List<ItemRecord> record);
 
-    PageRecord listar(String usuario, String status, LocalDateTime dataInicioPedido, LocalDateTime dataFimPedido, LocalDateTime dataInicioPagamento, LocalDateTime dataFimPagamento, Pageable pageable);
+    PageRecord listar(String usuario, String status, Pageable pageable);
 
     PedidoRecord pagamento(Long id, PagamentoRecord record);
 }
