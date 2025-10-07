@@ -4,11 +4,12 @@ import com.gerenciador.dashboard.record.FaturamentoMensalRecord;
 import com.gerenciador.dashboard.record.TicketMedioRecord;
 import com.gerenciador.dashboard.record.TopCincoRecord;
 
+import java.time.LocalDate;
 import java.util.List;
 
 
 public interface DashboardService {
     List<TopCincoRecord> topCinco();
     List<TicketMedioRecord> buscaTicketMedio();
-    FaturamentoMensalRecord buscarFaturamentoMensal();
+    FaturamentoMensalRecord buscarFaturamentoMensal(LocalDate startDate,LocalDate endDate);
 }

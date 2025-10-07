@@ -9,6 +9,7 @@ import com.gerenciador.pedido.record.PagamentoRecord;
 import com.gerenciador.pedido.record.PedidoRecord;
 import org.springframework.data.domain.Pageable;
 
+import java.time.LocalDate;
 import java.util.List;
 
 public interface PedidoService {
@@ -24,5 +25,5 @@ public interface PedidoService {
 
     List<TicketMedioRecord> buscarTicketMedioPorUsuario();
 
-    FaturamentoMensalRecord buscarFaturamentoMensal();
+    FaturamentoMensalRecord buscarFaturamentoMensal(LocalDate startDate, LocalDate endDate);
 }

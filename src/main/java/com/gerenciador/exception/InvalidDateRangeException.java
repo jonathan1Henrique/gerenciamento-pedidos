@@ -6,9 +6,9 @@ import lombok.Setter;
 
 @Getter
 @Setter
-public class UnprocessableEntityException extends RuntimeException {
+public class InvalidDateRangeException extends RuntimeException {
 
-    public UnprocessableEntityException(String message) {
+    public InvalidDateRangeException(String message) {
         super(message);
 
     }

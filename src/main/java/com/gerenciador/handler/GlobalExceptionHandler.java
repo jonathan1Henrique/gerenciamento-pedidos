@@ -4,7 +4,7 @@ package com.gerenciador.handler;
 import com.gerenciador.exception.NotFoundException;
 import com.gerenciador.exception.OrderNotBelongException;
 import com.gerenciador.exception.OutOfStockOrderException;
-import com.gerenciador.exception.UnprocessableEntityException;
+import com.gerenciador.exception.InvalidDateRangeException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -17,10 +17,10 @@ import java.util.HashMap;
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
-    @ExceptionHandler(UnprocessableEntityException.class)
-    public ResponseEntity<ErroResponse> handleUnprocessableEntityException(UnprocessableEntityException ex) {
-        ErroResponse erro = new ErroResponse(HttpStatus.UNPROCESSABLE_ENTITY.value(), ex.getMessage());
-        return new ResponseEntity<>(erro, HttpStatus.UNPROCESSABLE_ENTITY);
+    @ExceptionHandler(InvalidDateRangeException.class)
+    public ResponseEntity<ErroResponse> handleUnprocessableEntityException(InvalidDateRangeException ex) {
+        ErroResponse erro = new ErroResponse(HttpStatus.BAD_REQUEST.value(), ex.getMessage());
+        return new ResponseEntity<>(erro, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(NotFoundException.class)
