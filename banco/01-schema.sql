@@ -1,0 +1,64 @@
+CREATE DATABASE gerenciador;
+GRANT ALL PRIVILEGES ON gerenciador.* TO 'myuser'@'%';
+FLUSH PRIVILEGES;
+
+CREATE TABLE IF NOT EXISTS produto (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT,
+    preco DECIMAL(10,2) NOT NULL,
+    categoria VARCHAR(50),
+    quantidade_estoque INT DEFAULT 0,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+
+CREATE TABLE IF NOT EXISTS categoria (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    descricao TEXT
+);
+
+CREATE TABLE IF NOT EXISTS pedido (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    usuario VARCHAR(100) NOT NULL,
+    status ENUM('PENDENTE', 'EM_PROCESSAMENTO', 'CONCLUIDO', 'CANCELADO') NOT NULL DEFAULT 'PENDENTE',
+    valor_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
+    data_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+    data_pagamento DATETIME NULL,
+    observacoes TEXT
+);
+
+
+CREATE TABLE IF NOT EXISTS  pedido_itens (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    id_pedido BIGINT NOT NULL,
+    id_produto BIGINT NOT NULL,
+    quantidade INT NOT NULL,
+    preco_unitario DECIMAL(10,2) NOT NULL,
+
+    FOREIGN KEY (id_pedido) REFERENCES pedido(id),
+    FOREIGN KEY (id_produto) REFERENCES produto(id)
+);
+
+
+CREATE TABLE IF NOT EXISTS  usuario (
+    id BIGINT AUTO_INCREMENT PRIMARY KEY,
+    username VARCHAR(100) NOT NULL UNIQUE,
+    password VARCHAR(255) NOT NULL,
+    role ENUM('USER', 'ADMIN') NOT NULL,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+    data_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+ALTER TABLE pedido_itens
+    ADD COLUMN usuario VARCHAR,
+    ADD CONSTRAINT fk_usuario
+        FOREIGN KEY (username) REFERENCES usuario(username);
+
+ALTER TABLE produto
+    ADD COLUMN id_categoria BIGINT,
+    ADD CONSTRAINT fk_categoria
+        FOREIGN KEY (id_categoria) REFERENCES categoria(id);
+

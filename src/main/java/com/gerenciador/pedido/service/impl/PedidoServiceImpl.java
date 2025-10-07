@@ -1,6 +1,10 @@
 package com.gerenciador.pedido.service.impl;
 
+import com.gerenciador.dashboard.record.FaturamentoMensalRecord;
+import com.gerenciador.dashboard.record.TicketMedioRecord;
+import com.gerenciador.dashboard.record.TopCincoRecord;
 import com.gerenciador.exception.NotFoundException;
+import com.gerenciador.exception.OrderNotBelongException;
 import com.gerenciador.exception.OutOfStockOrderException;
 import com.gerenciador.paginacao.PageRecord;
 import com.gerenciador.pedido.entity.Pedido;
@@ -17,6 +21,7 @@ import com.gerenciador.produto.entity.Produto;
 import com.gerenciador.produto.mapper.ProdutoMapper;
 import com.gerenciador.produto.record.ProdutoRecord;
 import com.gerenciador.produto.service.ProdutoService;
+import com.gerenciador.auth.service.AuthService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -38,6 +43,7 @@ public class PedidoServiceImpl implements PedidoService {
     private final PedidoItemRepository itemRepository;
     private final PedidoMapper mapper;
     private final ProdutoMapper produtoMapper;
+    private final AuthService authService;
 
     @Override
     public PedidoRecord salvar(List<ItemRecord> itemRecords) {
@@ -47,7 +53,12 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public PedidoRecord editar(Long idPedido, List<ItemRecord> itemRecords) {
-        buscaPedidoPorId(idPedido);
+        Pedido pedido = buscaPedidoPorId(idPedido);
+        String username = authService.getUsuarioLogado().username();
+        if (!pedido.getUsuario().equals(username)) {
+            throw new OrderNotBelongException("O Pedido não pertence ao usuário logado");
+        }
+
         List<Long> idProdutos = new ArrayList<>();
         Map<Long, Integer> quantidadeProdutos = new HashMap<>();
         itemRecords.forEach(item -> {
@@ -57,9 +68,9 @@ public class PedidoServiceImpl implements PedidoService {
 
         List<ProdutoRecord> produtos = produtoService.buscarPorListaId(idProdutos);
 
-        List<PedidoItens> pedidoItens = itemRepository.findByIdPedido(idPedido);
+        List<PedidoItens> pedidoItens = itemRepository.findByIdPedido(pedido.getId());
 
-        Pedido pedido = processarPedido(idPedido, itemRecords);
+        processarPedido(pedido.getId(), itemRecords);
 
         editaItemsPedido(produtos, pedido.getId(), quantidadeProdutos, pedidoItens);
 
@@ -68,20 +79,23 @@ public class PedidoServiceImpl implements PedidoService {
 
     @Override
     public PageRecord listar(String usuario, String status,
-                             LocalDateTime dataInicioPedido, LocalDateTime dataFimPedido,
-                             LocalDateTime dataInicioPagamento, LocalDateTime dataFimPagamento,
                              Pageable pageable) {
 
-        validarDatas(dataInicioPedido, dataFimPedido, "pedido");
-        validarDatas(dataInicioPagamento, dataFimPagamento, "pagamento");
+        usuario = getUsuario(usuario);
 
         return mapper.toPageRecord(
                 repository.buscarPedidosComProdutos(
                         usuario, status,
-                        dataInicioPedido, dataFimPedido,
-                        dataInicioPagamento, dataFimPagamento,
                         pageable)
         );
+    }
+
+    private String getUsuario(String usuario) {
+        String role = authService.getUsuarioLogado().role();
+        if(!role.equals("ROLE_ADMIN")){
+            usuario = authService.getUsuarioLogado().username();
+        }
+        return usuario;
     }
 
     @Override
@@ -98,6 +112,21 @@ public class PedidoServiceImpl implements PedidoService {
         pedido.setDataPagamento(LocalDateTime.now());
 
         return mapper.toRecord(repository.save(pedido));
+    }
+
+    @Override
+    public List<TopCincoRecord> topCinco() {
+        return repository.buscarTopCincoUsuarios();
+    }
+
+    @Override
+    public List<TicketMedioRecord> buscarTicketMedioPorUsuario() {
+        return repository.buscarTicketMedioPorUsuario();
+    }
+
+    @Override
+    public FaturamentoMensalRecord buscarFaturamentoMensal() {
+        return repository.buscarFaturamentoMensal();
     }
 
     private void validaEstoque(Long id, Pedido pedido) {
@@ -119,21 +148,6 @@ public class PedidoServiceImpl implements PedidoService {
                 .orElseThrow(() -> new NotFoundException("Pedido com Id " + idPedido + " não encontrado"));
     }
 
-    private void validarDatas(LocalDateTime dataInicio, LocalDateTime dataFim, String tipo) {
-        if (dataInicio != null && dataFim == null) {
-            throw new IllegalArgumentException("A data de fim de " + tipo + " deve ser informada quando a data de início é fornecida.");
-        }
-
-        if (dataFim != null && dataInicio == null) {
-            throw new IllegalArgumentException("A data de início de " + tipo + " deve ser informada quando a data de fim é fornecida.");
-        }
-
-        if (dataInicio != null && dataFim != null && dataInicio.isAfter(dataFim)) {
-            throw new IllegalArgumentException("A data de início de " + tipo + " não pode ser posterior à data de fim.");
-        }
-    }
-
-
     private Pedido processarPedido(Long idPedido, List<ItemRecord> itemRecords) {
         List<Long> idProdutos = new ArrayList<>();
         Map<Long, Integer> quantidadeProdutos = new HashMap<>();
@@ -151,10 +165,11 @@ public class PedidoServiceImpl implements PedidoService {
         BigDecimal valorTotal = somaValorTotal(produtos, quantidadeProdutos);
 
         Pedido pedido = salvaPedido(valorTotal, idPedido);
-        salvaNovosItemsPedido(produtos, pedido.getId(), quantidadeProdutos);
+        salvaNovosItemsPedido(produtos, idPedido, quantidadeProdutos);
         return pedido;
 
     }
+
     private void salvaNovosItemsPedido(List<ProdutoRecord> produtos, Long idPedido, Map<Long, Integer> quantidadeProdutos) {
         List<PedidoItens> itens = new ArrayList<>();
         produtos.forEach(produto ->
@@ -204,7 +219,7 @@ public class PedidoServiceImpl implements PedidoService {
         return repository.save(Pedido.builder()
                 .id(idPedido)
                 .valorTotal(valorTotal)
-                .usuario("usuario")
+                .usuario(authService.getUsuarioLogado().username())
                 .status(StatusPedido.PENDENTE)
                 .dataPedido(LocalDateTime.now())
                 .build());

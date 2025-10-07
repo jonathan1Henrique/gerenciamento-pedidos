@@ -1,12 +1,14 @@
 package com.gerenciador.pedido.service;
 
+import com.gerenciador.dashboard.record.FaturamentoMensalRecord;
+import com.gerenciador.dashboard.record.TicketMedioRecord;
+import com.gerenciador.dashboard.record.TopCincoRecord;
 import com.gerenciador.paginacao.PageRecord;
 import com.gerenciador.pedido.record.ItemRecord;
 import com.gerenciador.pedido.record.PagamentoRecord;
 import com.gerenciador.pedido.record.PedidoRecord;
 import org.springframework.data.domain.Pageable;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 public interface PedidoService {
@@ -14,7 +16,13 @@ public interface PedidoService {
 
     PedidoRecord editar(Long idPedido, List<ItemRecord> record);
 
-    PageRecord listar(String usuario, String status, LocalDateTime dataInicioPedido, LocalDateTime dataFimPedido, LocalDateTime dataInicioPagamento, LocalDateTime dataFimPagamento, Pageable pageable);
+    PageRecord listar(String usuario, String status, Pageable pageable);
 
     PedidoRecord pagamento(Long id, PagamentoRecord record);
+
+    List<TopCincoRecord> topCinco();
+
+    List<TicketMedioRecord> buscarTicketMedioPorUsuario();
+
+    FaturamentoMensalRecord buscarFaturamentoMensal();
 }

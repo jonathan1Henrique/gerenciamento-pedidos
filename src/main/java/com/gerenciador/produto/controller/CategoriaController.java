@@ -39,6 +39,7 @@ public class CategoriaController {
     ) {
         return ResponseEntity.ok(service.listar(nome, descricao)) ;
     }
+
     @DeleteMapping
     @Operation(summary = "Deleta categoria")
     public ResponseEntity<Void> deletar(@RequestParam Long id){

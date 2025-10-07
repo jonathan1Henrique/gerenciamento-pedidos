@@ -15,7 +15,6 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -49,12 +48,8 @@ public class PedidoController {
     public ResponseEntity<PageRecord> listar(
             @RequestParam(required = false) String usuario,
             @RequestParam(required = false) String status,
-            @RequestParam(required = false) LocalDateTime dataInicioPedido,
-            @RequestParam(required = false) LocalDateTime dataFimPedido,
-            @RequestParam(required = false) LocalDateTime dataInicioPagamento,
-            @RequestParam(required = false) LocalDateTime dataFimPagamento,
             @PageableDefault(size = 10) Pageable pageable ) {
 
-        return ResponseEntity.ok(service.listar(usuario, status, dataInicioPedido, dataFimPedido, dataInicioPagamento, dataFimPagamento, pageable));
+        return ResponseEntity.ok(service.listar(usuario, status, pageable));
     }
 }
