@@ -74,6 +74,61 @@ Assim que o sistema estiver rodando, ele estará acessível em:
 
 Swagger acesse:
 👉 http://localhost:8080/gerenciador-pedidos/swagger-ui/index.html
+Para acessar os endpoints:
+
+usuario com perfil de admin:
+
+     {
+     	"username": "admin_master",
+     	"password": "admin123"
+     }
+     
+Usuarios com perfil de USER:
+
+     {
+     	"username": "joao_silva",
+     	"password": "123456"
+     }
+     
+     {
+     	"username": "maria_oliveira",
+     	"password": "123456"
+     }
+
+     {
+     	"username": "pedro_santos",
+     	"password": "123456"
+     }
+     
+     {
+     	"username": "ana_costa",
+     	"password": "123456"
+     }
+     
+     {
+     	"username": "lucas_martins",
+     	"password": "123456"
+     }
+     
+     {
+     	"username": "juliana_lima",
+     	"password": "123456"
+     }
+     
+     {
+     	"username": "rafael_souza",
+     	"password": "123456"
+     }
+     
+     {
+     	"username": "carla_rocha",
+     	"password": "123456"
+     }
+     
+     {
+     	"username": "fernando_gomes",
+     	"password": "123456"
+     }
 
 ## 💡 Dica
 
