@@ -1,5 +1,9 @@
 package com.gerenciador.pedido.repository.custom.impl;
 
+import com.gerenciador.dashboard.record.FaturamentoMensalRecord;
+import com.gerenciador.dashboard.record.TicketMedioRecord;
+import com.gerenciador.dashboard.record.TopCincoRecord;
+import com.gerenciador.pedido.entity.Pedido;
 import com.gerenciador.pedido.enums.StatusPedido;
 import com.gerenciador.pedido.record.PedidoResumoRecord;
 import com.gerenciador.pedido.repository.custom.PedidoRepositoryCustom;
@@ -7,16 +11,17 @@ import com.gerenciador.produto.record.ProdutoRecord;
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import jakarta.persistence.Query;
+import jakarta.persistence.TypedQuery;
+import jakarta.persistence.criteria.*;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 
 import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.*;
 
 @Repository
 public class PedidoRepositoryImpl implements PedidoRepositoryCustom {
@@ -123,6 +128,116 @@ public class PedidoRepositoryImpl implements PedidoRepositoryCustom {
         }
 
         return new PageImpl<>(new ArrayList<>(pedidosMap.values()), pageable, total);
+    }
+
+    @Override
+    public List<TopCincoRecord> buscarTopCincoUsuarios() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+        Root<Pedido> root = cq.from(Pedido.class);
+
+        Expression<String> usuario = root.get("usuario");
+        Expression<Long> totalPedidos = cb.count(root.get("id"));
+        Expression<BigDecimal> totalGasto = cb.sum(root.get("valorTotal"));
+
+        cq.multiselect(usuario, totalPedidos, totalGasto);
+        cq.where(cb.equal(root.get("status"), StatusPedido.CONCLUIDO));
+        cq.groupBy(usuario);
+        cq.orderBy(cb.desc(totalGasto));
+
+        TypedQuery<Object[]> query = entityManager.createQuery(cq);
+        query.setMaxResults(5);
+
+        List<Object[]> resultList = query.getResultList();
+
+        return resultList.stream()
+                .map(row -> new TopCincoRecord(
+                        (String) row[0],
+                        (Long) row[1],
+                        (BigDecimal) row[2]
+                ))
+                .toList();
+    }
+
+    @Override
+    public List<TicketMedioRecord> buscarTicketMedioPorUsuario() {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+        Root<Pedido> root = cq.from(Pedido.class);
+
+        Expression<String> usuario = root.get("usuario");
+        Expression<BigDecimal> soma = cb.sum(root.get("valorTotal"));
+        Expression<Long> count = cb.count(root.get("id"));
+
+        // Calcula o ticket médio (SUM / COUNT)
+        Expression<Number> ticketMedio = cb.quot(soma, cb.toBigDecimal(count));
+
+        cq.multiselect(usuario, ticketMedio);
+        cq.where(cb.equal(root.get("status"), StatusPedido.CONCLUIDO));
+        cq.groupBy(usuario);
+        cq.orderBy(cb.desc(ticketMedio));
+
+        TypedQuery<Object[]> query = entityManager.createQuery(cq);
+        List<Object[]> resultList = query.getResultList();
+
+        return resultList.stream()
+                .map(row -> new TicketMedioRecord(
+                        (String) row[0],
+                        // arredonda manualmente com scale 2 (ROUND)
+                        ((BigDecimal) row[1]).setScale(2, BigDecimal.ROUND_HALF_UP)
+                ))
+                .toList();
+    }
+
+    @Override
+    public FaturamentoMensalRecord buscarFaturamentoMensal(LocalDate startDate, LocalDate endDate) {
+        CriteriaBuilder cb = entityManager.getCriteriaBuilder();
+
+        CriteriaQuery<Object[]> cq = cb.createQuery(Object[].class);
+        Root<Pedido> root = cq.from(Pedido.class);
+
+        Expression<Integer> mesExpr = cb.function("MONTH", Integer.class, root.get("dataPagamento"));
+        Expression<Integer> anoExpr = cb.function("YEAR", Integer.class, root.get("dataPagamento"));
+        Expression<BigDecimal> somaExpr = cb.sum(root.get("valorTotal"));
+
+        List<Predicate> predicates = new ArrayList<>();
+        predicates.add(cb.equal(root.get("status"), StatusPedido.CONCLUIDO));
+
+        if (startDate != null && endDate != null) {
+            Date inicio = Date.from(startDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+            Date fim = Date.from(endDate.plusDays(1).atStartOfDay(ZoneId.systemDefault()).toInstant());
+            predicates.add(cb.between(root.get("dataPagamento"), inicio, fim));
+        } else {
+
+            predicates.add(
+                    cb.equal(cb.function("MONTH", Integer.class, root.get("dataPagamento")),
+                            cb.function("MONTH", Integer.class, cb.currentDate()))
+            );
+            predicates.add(
+                    cb.equal(cb.function("YEAR", Integer.class, root.get("dataPagamento")),
+                            cb.function("YEAR", Integer.class, cb.currentDate()))
+            );
+        }
+
+        cq.multiselect(mesExpr, anoExpr, somaExpr);
+        cq.where(predicates.toArray(new Predicate[0]));
+        cq.groupBy(anoExpr, mesExpr);
+
+        TypedQuery<Object[]> query = entityManager.createQuery(cq);
+        List<Object[]> resultList = query.getResultList();
+
+        if (resultList.isEmpty()) {
+            return null;
+        }
+
+        Object[] row = resultList.get(0);
+        return new FaturamentoMensalRecord(
+                (Integer) row[0],
+                (Integer) row[1],
+                (BigDecimal) row[2]
+        );
     }
 
 

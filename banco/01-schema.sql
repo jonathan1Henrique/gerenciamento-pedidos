@@ -1,7 +1,3 @@
-CREATE DATABASE gerenciador;
-GRANT ALL PRIVILEGES ON gerenciador.* TO 'myuser'@'%';
-FLUSH PRIVILEGES;
-
 CREATE TABLE IF NOT EXISTS produto (
     id BIGINT AUTO_INCREMENT PRIMARY KEY,
     nome VARCHAR(100) NOT NULL,
@@ -26,8 +22,7 @@ CREATE TABLE IF NOT EXISTS pedido (
     status ENUM('PENDENTE', 'EM_PROCESSAMENTO', 'CONCLUIDO', 'CANCELADO') NOT NULL DEFAULT 'PENDENTE',
     valor_total DECIMAL(10,2) NOT NULL DEFAULT 0.00,
     data_pedido DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-    data_pagamento DATETIME NULL,
-    observacoes TEXT
+    data_pagamento DATETIME NULL
 );
 
 
@@ -52,10 +47,6 @@ CREATE TABLE IF NOT EXISTS  usuario (
     data_atualizacao DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
-ALTER TABLE pedido_itens
-    ADD COLUMN usuario VARCHAR,
-    ADD CONSTRAINT fk_usuario
-        FOREIGN KEY (username) REFERENCES usuario(username);
 
 ALTER TABLE produto
     ADD COLUMN id_categoria BIGINT,

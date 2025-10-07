@@ -27,6 +27,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,8 +126,8 @@ public class PedidoServiceImpl implements PedidoService {
     }
 
     @Override
-    public FaturamentoMensalRecord buscarFaturamentoMensal() {
-        return repository.buscarFaturamentoMensal();
+    public FaturamentoMensalRecord buscarFaturamentoMensal(LocalDate startDate, LocalDate endDate) {
+        return repository.buscarFaturamentoMensal(startDate, endDate);
     }
 
     private void validaEstoque(Long id, Pedido pedido) {
